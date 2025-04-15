@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Bias Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .hero {
+            background: linear-gradient(135deg, #6c5ce7, #a363d9);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+        .search-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .bias-filter {
+            margin: 1rem 0;
+        }
+        .bias-filter .btn {
+            margin: 0.25rem;
+            border-radius: 20px;
+            padding: 0.5rem 1.5rem;
+        }
+        .article-card {
+            cursor: pointer;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+        }
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .bias-badge {
+            border-radius: 20px;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .left-leaning { 
+            background-color: #ff6b6b; 
+            color: white;
+            border: 1px solid #ff5252;
+        }
+        .centrist { 
+            background-color: #4dabf7; 
+            color: white;
+            border: 1px solid #339af0;
+        }
+        .right-leaning { 
+            background-color: #51cf66; 
+            color: white;
+            border: 1px solid #40c057;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        #error-message {
+            display: none;
+            color: #dc3545;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem !important;
+            color: #212529;
+            line-height: 1.4;
+        }
+        .source-name {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .read-more {
+            margin-top: 1rem;
+            display: inline-block;
+            color: #6c5ce7;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .read-more:hover {
+            color: #5b4bc4;
+        }
+
+        /* Modal styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+        .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .modal-body {
+            padding-top: 0;
+        }
+        .article-summary {
+            line-height: 1.6;
+            color: #495057;
+        }
+        .article-link {
+            word-break: break-all;
+            color: #6c5ce7;
+            text-decoration: none;
+        }
+        .article-link:hover {
+            color: #5b4bc4;
+        }
+        .modal-bias-badge {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero text-center">
+        <div class="container">
+            <h1 class="display-4 mb-3">News Bias Detector</h1>
+            <p class="lead">Analyze political bias in Indian news articles using AI</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <form id="search-form" class="mb-4">
+                <div class="input-group">
+                    <input type="text" id="keyword" name="keyword" class="form-control form-control-lg" placeholder="Enter a topic or keyword..." required>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+
+            <div class="bias-filter text-center">
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="filter" id="all" value="all" checked>
+                    <label class="btn btn-outline-secondary" for="all">All</label>
+
+                    <input type="radio" class="btn-check" name="filter" id="left-leaning" value="left-leaning">
+                    <label class="btn btn-outline-secondary" for="left-leaning">Left-leaning</label>
+
+                    <input type="radio" class="btn-check" name="filter" id="centrist" value="centrist/neutral">
+                    <label class="btn btn-outline-secondary" for="centrist">Centrist</label>
+
+                    <input type="radio" class="btn-check" name="filter" id="right-leaning" value="right-leaning">
+                    <label class="btn btn-outline-secondary" for="right-leaning">Right-leaning</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Analyzing articles...</p>
+        </div>
+
+        <div id="error-message" class="alert alert-danger" role="alert"></div>
+
+        <div id="results" class="row"></div>
+    </div>
+
+    <!-- Article Modal -->
+    <div class="modal fade" id="articleModal" tabindex="-1" aria-labelledby="articleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-1" id="articleModalLabel"></h5>
+                        <h4 class="modal-title" id="articleTitle" style="font-weight: 600;"></h4>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <span id="modalBiasBadge" class="bias-badge"></span>
+                    </div>
+                    <h6 class="text-muted mb-3">AI-Generated Summary:</h6>
+                    <div class="article-summary mb-4" id="modalSummary"></div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-link-45deg me-2"></i>
+                        <a href="#" id="modalLink" class="article-link" target="_blank"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('search-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const keyword = document.getElementById('keyword').value;
+            const filter = document.querySelector('input[name="filter"]:checked').value;
+            const resultsDiv = document.getElementById('results');
+            const loading = document.querySelector('.loading');
+            const errorMessage = document.getElementById('error-message');
+
+            // Reset and show loading
+            resultsDiv.innerHTML = '';
+            errorMessage.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('keyword', keyword);
+                formData.append('filter', filter);
+
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Search failed');
+
+                const articles = await response.json();
+
+                if (articles.length === 0) {
+                    resultsDiv.innerHTML = '<div class="col-12 text-center mt-4"><p>No articles found. Try a different search term.</p></div>';
+                } else {
+                    articles.forEach(article => {
+                        const biasClass = article.bias === "centrist/neutral" ? "centrist" : article.bias.replace('/', '-');
+                        const card = document.createElement('div');
+                        card.className = 'col-md-6 col-lg-4 mb-4';
+                        
+                        card.innerHTML = `
+                            <div class="article-card" onclick="showArticleDetails(${JSON.stringify(article).replace(/"/g, '&quot;')})">
+                                <span class="source-name">${new URL(article.url).hostname.replace('www.', '')}</span>
+                                <span class="bias-badge ${biasClass}">${article.bias}</span>
+                                <h5 class="card-title">${article.title || 'No title available'}</h5>
+                                <a href="${article.url}" target="_blank" class="read-more" onclick="event.stopPropagation();">
+                                    Read Full Article <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            </div>
+                        `;
+                        resultsDiv.appendChild(card);
+                    });
+                }
+            } catch (error) {
+                errorMessage.textContent = 'An error occurred while searching for articles. Please try again.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // Filter change handler
+        document.querySelectorAll('input[name="filter"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (document.getElementById('results').children.length > 0) {
+                    document.getElementById('search-form').dispatchEvent(new Event('submit'));
+                }
+            });
+        });
+
+        // Function to show article details in modal
+        function showArticleDetails(article) {
+            const modal = new bootstrap.Modal(document.getElementById('articleModal'));
+            const biasClass = article.bias === "centrist/neutral" ? "centrist" : article.bias.replace('/', '-');
+            
+            document.getElementById('articleModalLabel').textContent = new URL(article.url).hostname.replace('www.', '');
+            document.getElementById('articleTitle').textContent = article.title || '';
+            document.getElementById('modalBiasBadge').className = `bias-badge ${biasClass}`;
+            document.getElementById('modalBiasBadge').textContent = article.bias;
+            document.getElementById('modalSummary').textContent = article.summary || 'Summary not available';
+            document.getElementById('modalLink').href = article.url;
+            document.getElementById('modalLink').textContent = article.url;
+            
+            modal.show();
+        }
+    </script>
+</body>
+</html> 
