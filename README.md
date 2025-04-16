@@ -92,8 +92,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- Your Name
-- Other Contributors
+- Chirag Mahesh, Akshaj Anil and Siddarth SR Pillai.
 
 ## 🙏 Acknowledgments
 
