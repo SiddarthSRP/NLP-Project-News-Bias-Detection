@@ -96,5 +96,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- List any references, datasets, or tools used
-- Credit to any third-party resources 
+Code Reference: https://github.com/coderishabh11/Media-Bias-Analysis-in-Indian-News-Articles
+Datasets Used (Borrowed From Code Reference and Edited): https://drive.google.com/drive/folders/1YjMwihu8hFr7N7SugmXQBPyXQ_XCG3YZ?usp=drive_link
